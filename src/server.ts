@@ -168,12 +168,8 @@ app.use("/api/archives", archivesRoutes);
 
 
 
-// Serve Frontend Static Files
-app.use(express.static(path.join(__dirname, "../../../Frontend/dist")));
-
-// Client-side Routing Catch-all
-app.get("/{*path}", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../../Frontend/dist/index.html"));
+app.get("/", (req, res) => {
+  res.send("Backend running successfully");
 });
 
 const PORT = process.env.PORT || 5000;
