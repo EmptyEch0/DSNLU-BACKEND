@@ -1,0 +1,13 @@
+﻿[dotenv@17.3.1] injecting env (5) from .env -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+Starting Visiting Faculty seeding process...
+Seeding Prof. (Dr.) David Ambrose...
+Error: Data truncated for column 'type' at row 1
+    at PromisePool.query (C:\Users\Likhith Kumar\Downloads\DSNLU-PRESENT\Backend\dsnlu-backend\node_modules\mysql2\lib\promise\pool.js:36:22)
+    at seedVisitingFaculty (C:\Users\Likhith Kumar\Downloads\DSNLU-PRESENT\Backend\dsnlu-backend\seed-visiting.js:58:18)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'WARN_DATA_TRUNCATED',
+  errno: 1265,
+  sql: "INSERT INTO faculty_experience (faculty_id, title, institution, period, type, display_order) VALUES (425, 'Advocate', 'High Court of Madras', '1989 - 1995', 'industry', 8)",
+  sqlState: '01000',
+  sqlMessage: "Data truncated for column 'type' at row 1"
+}
