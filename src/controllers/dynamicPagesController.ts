@@ -82,7 +82,7 @@ export const getPageBySlug = async (req: Request, res: Response): Promise<void> 
     );
 
     // Parse content JSON safely
-    const parsedSections = sections.map((s) => ({
+    const parsedSections = sections.map((s: SectionRow) => ({
       ...s,
       content: (() => {
         try { return JSON.parse(s.content); }
