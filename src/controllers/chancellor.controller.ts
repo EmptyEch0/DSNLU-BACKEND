@@ -5,7 +5,7 @@ import db from "../config/db";
 export const getCurrentChancellor = async (req: Request, res: Response) => {
   try {
     const [rows]: any = await db.query(
-      "SELECT * FROM chancellors WHERE is_current = TRUE LIMIT 1"
+      "SELECT * FROM chancellors WHERE is_current = 1 ORDER BY id DESC LIMIT 1"
     );
 
     if (!rows || rows.length === 0) {
@@ -41,7 +41,7 @@ export const getAllChancellors = async (req: Request, res: Response) => {
   }
 };
 
-// Update chancellor
+// Update or create chancellor
 export const updateChancellor = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -49,50 +49,77 @@ export const updateChancellor = async (req: Request, res: Response) => {
 
     const formatDate = (date: string | null) => {
       if (!date) return null;
-      return new Date(date).toISOString().split("T")[0];
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+      try {
+        return new Date(date).toISOString().split("T")[0];
+      } catch {
+        return null;
+      }
     };
 
     const formattedStartDate = formatDate(data.start_date);
     const formattedEndDate = formatDate(data.end_date);
 
     // If making this one current, unset others
-    if (data.is_current === 1) {
+    if (data.is_current === 1 || data.is_current === true) {
       await db.query(
         "UPDATE chancellors SET is_current = 0 WHERE id != ?",
         [id]
       );
     }
 
-    await db.query(
-      `UPDATE chancellors SET
-        name=?,
-        title_tag=?,
-        designation=?,
-        university_designation=?,
-        biography=?,
-        image_url=?,
-        start_date=?,
-        end_date=?,
-        is_current=?
-       WHERE id=?`,
-      [
-        data.name || "",
-        data.title_tag || "",
-        data.designation || "",
-        data.university_designation || "",
-        data.biography || "",
-        data.image_url || "",
-        formattedStartDate,
-        formattedEndDate,
-        data.is_current ?? 0,
-        id
-      ]
-    );
+    const [existing]: any = await db.query("SELECT id FROM chancellors WHERE id = ?", [id]);
+
+    if (existing && existing.length > 0) {
+      await db.query(
+        `UPDATE chancellors SET
+          name=?,
+          title_tag=?,
+          designation=?,
+          university_designation=?,
+          biography=?,
+          image_url=?,
+          start_date=?,
+          end_date=?,
+          is_current=?
+         WHERE id=?`,
+        [
+          data.name || "",
+          data.title_tag || "",
+          data.designation || "",
+          data.university_designation || "",
+          data.biography || "",
+          data.image_url || "",
+          formattedStartDate,
+          formattedEndDate,
+          data.is_current ? 1 : 0,
+          id
+        ]
+      );
+    } else {
+      await db.query(
+        `INSERT INTO chancellors (
+          id, name, title_tag, designation, university_designation, biography, image_url, start_date, end_date, is_current
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          data.name || "",
+          data.title_tag || "",
+          data.designation || "",
+          data.university_designation || "",
+          data.biography || "",
+          data.image_url || "",
+          formattedStartDate,
+          formattedEndDate,
+          data.is_current ? 1 : 0
+        ]
+      );
+    }
 
     res.json({ success: true });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false });
+    console.error("Chancellor Update Error:", error);
+    res.status(500).json({ success: false, error: (error as Error).message });
   }
 };
